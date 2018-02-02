@@ -19,7 +19,6 @@ import {fork, ForkOptions} from 'child_process';
  * @author JimWP@google.com (Jim Przybylinski)
  */
 export class TaskResult {
-
   private readonly outputData: string[];
 
   constructor(sdtoutData: string[]) {
@@ -49,7 +48,7 @@ export class TaskResult {
     });
   }
 
-  getVariable(this: TaskResult, variableName: string, secret = false): string {
+  getVariable(variableName: string, secret = false): string {
     const setVariableTag =
         `##vso[task.setvariable variable=${variableName};secret=${secret};]`;
     let value: string = undefined;
@@ -61,15 +60,15 @@ export class TaskResult {
     return value;
   }
 
-  logData(this: TaskResult): void {
+  logData(): void {
     console.log('--- task output ---');
     console.log(this.outputData.join('\n'));
   }
 
-  getStatus(this: TaskResult): [ 'failed'|'succeeded', string ] {
+  getStatus(): [ 'failed'|'succeeded', string ] {
     const taskSuccessResult = '##vso[task.complete result=Succeeded;]';
     const taskFailedResult = '##vso[task.complete result=Failed;]';
-    let successMessage: string = undefined;
+    let successMessage: string = '';
     for (const chunk of this.outputData) {
       if (chunk.startsWith(taskSuccessResult)) {
         successMessage = chunk.substring(taskSuccessResult.length);
@@ -80,25 +79,27 @@ export class TaskResult {
     return [ 'succeeded', successMessage ];
   }
 
-  getDebugLines(this: TaskResult, match: string | RegExp | null = null): string[] {
+  getDebugLines(match?: string|RegExp): string[] {
     const taskDebugTag = '##vso[task.debug]';
     const debugLines: string[] = [];
     for (const chunk of this.outputData) {
       if (chunk.startsWith(taskDebugTag)) {
         const line = chunk.substring(taskDebugTag.length);
-        if (match === null) {
+        if (TaskResult.isLineMatch(line, match)) {
           debugLines.push(line);
-        } else if (typeof match === 'string') {
-          if (line.includes(match)) {
-            debugLines.push(line);
-          }
-        } else {
-          if (match.test(line)) {
-            debugLines.push(line);
-          }
         }
       }
     }
     return debugLines;
+  }
+
+  private static isLineMatch(line: string, match?: string|RegExp): boolean {
+    if (typeof match === 'string') {
+      return line.includes(match);
+    } else if (match instanceof RegExp) {
+      return match.test(line);
+    } else {
+      return true;
+    }
   }
 }

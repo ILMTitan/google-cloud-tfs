@@ -43,7 +43,7 @@ export async function runOrSetDeployment(
   const deploymentName = task.getInput('deploymentName', true);
   const imageName = task.getInput('imageName', true);
   const imageTag = task.getInput('imageTag', true);
-  const replicas = parseInt(task.getInput('replicas', true), 10);
+  const replicas = Math.floor(Number(task.getInput('replicas', true)));
   if (isNaN(replicas)) {
     throw new Error(s.nanReplicaMessage(task.getInput('replicas')));
   } else if (replicas < 0) {
@@ -109,7 +109,7 @@ async function setAndResizeDeployment(
     image: string,
     replicas: number,
     dryRun: boolean,
-    endpoint: KubeEndpoint
+    endpoint: KubeEndpoint,
 ): Promise<void> {
   const imagePromise: Promise<void> =
       setDeploymentImage(deployment, image, dryRun, endpoint);
@@ -122,7 +122,7 @@ async function rescaleDeployment(
     deployment: Deployment,
     replicas: number,
     dryRun: boolean,
-    endpoint: KubeEndpoint
+    endpoint: KubeEndpoint,
 ): Promise<void> {
   if (deployment.spec.replicas !== replicas) {
     if (dryRun) {

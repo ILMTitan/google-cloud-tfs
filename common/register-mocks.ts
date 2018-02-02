@@ -72,8 +72,7 @@ export function registerCommonMocks(runner: TaskMockRunner,
 
   runner.registerMock('fs', getFsMock(files));
 
-  runner.registerMock('common/format',
-                      {isoNowString() : string { return mockIsoString; }});
+  runner.registerMock('common/format', {isoNowString : () => mockIsoString});
 }
 
 /**
@@ -86,17 +85,16 @@ export function registerCommonMocks(runner: TaskMockRunner,
 export function getFsMock(files?: Map<string, string>): typeof fs {
   return Object.create(fs, {
     unlinkSync : {
-      value(file: string) : void { console.log(`[fs.unlinkSync]${file}`); },
+      value : (file: string) => console.log(`[fs.unlinkSync]${file}`),
     },
     readFileSync : {
-      value(file: string) : string |
-          Buffer {
-            if (files && files.has(file)) {
-              return files.get(file);
-            } else {
-              return fs.readFileSync.apply(fs, arguments);
-            }
-          },
+      value : (file: string) => {
+        if (files && files.has(file)) {
+          return files.get(file);
+        } else {
+          return fs.readFileSync.apply(fs, arguments);
+        }
+      },
     },
   });
 }
@@ -132,7 +130,7 @@ export function getDefaultAnswers(): TaskLibAnswers {
     exec : {
       [gcloudVersionExecString] : {
         code : 0,
-        stdout : JSON.stringify({['Google Cloud SDK']: '174.0.0'}),
+        stdout : JSON.stringify({['Google Cloud SDK'] : '174.0.0'}),
       },
     },
   };

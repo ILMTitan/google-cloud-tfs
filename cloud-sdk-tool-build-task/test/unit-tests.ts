@@ -349,7 +349,7 @@ describe('unit tests', () => {
       const objectUnderTest = new CloudSdkPackage(mockVersion, di);
 
       await objectUnderTest.initializeOrAcquire(true, di);
-      
+
       taskMock.verify(t => t.tool(It.is<string>(s => s !== mockGcloudPath)),
                       Times.once());
     });

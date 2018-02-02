@@ -58,36 +58,36 @@ export function getDefaultExecOptions(): IExecOptions {
  * @returns {IExecOptions} for quiet gcloud calls.
  */
 export function getQuietExecOptions(): IExecOptions {
-  // Hide the stream output.
-  // Hopefully replace this with execOptions.silent when that works.
-  const protoWriter: PropertyDescriptorMap = {
-    write : {
-      value(chunk: Buffer|string, encoding?: string, callback?: Function):
-          Boolean {
-            let chunkString: string;
-            if (encoding && chunk instanceof Buffer) {
-              chunkString = chunk.toString(encoding);
-            } else {
-              chunkString = chunk.toString();
-            }
-
-            // For unit testing that gcloud was in fact run.
-            if (chunkString.startsWith('[command]')) {
-              return process.stdout.write(chunkString, encoding, callback);
-            } else {
-              if (callback) {
-                callback();
-              }
-              return true;
-            }
-          }
-    }
-  };
 
   const execOptions = getDefaultExecOptions();
-  execOptions.outStream = Object.create(stream.Writable, protoWriter);
-  execOptions.errStream = Object.create(stream.Writable, protoWriter);
+  execOptions.outStream = new QuiteWriteable(process.stdout);
+  execOptions.errStream = new QuiteWriteable(process.stderr);
   return execOptions;
+}
+
+// Hide the stream output.
+// Hopefully replace this with execOptions.silent when that works.
+class QuiteWriteable extends stream.Writable {
+  constructor(readonly delagateStream: NodeJS.WritableStream,
+              opts?: stream.WritableOptions) {
+    super(opts);
+  }
+
+  _write(chunk: Buffer | string, encoding: string, callback: Function): void {
+    let chunkString: string;
+    if (chunk instanceof Buffer) {
+      chunkString = chunk.toString(encoding);
+    } else {
+      chunkString = chunk;
+    }
+
+    // For unit testing that gcloud was in fact run.
+    if (chunkString.startsWith('[command]')) {
+      this.delagateStream.write(chunkString, encoding, callback);
+    } else if (callback) {
+      callback();
+    }
+  }
 }
 
 /**

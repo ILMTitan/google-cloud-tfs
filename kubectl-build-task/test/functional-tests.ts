@@ -89,7 +89,7 @@ describeWithCredentialFile('functional tests', function(): void {
   });
 
   const requiredInputs = [ 'serviceEndpoint', 'command', 'cluster', 'zone' ];
-  for (let input of requiredInputs) {
+  for (const input of requiredInputs) {
     it(`should fail missing required input ${input}`, async () => {
       env[`INPUT_${input}`] = undefined;
 

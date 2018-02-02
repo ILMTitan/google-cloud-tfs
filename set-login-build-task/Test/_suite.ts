@@ -21,7 +21,7 @@ import * as assert from 'assert';
 import {
   assertGcloudNotRun,
   assertGcloudSilentSuccess,
-  assertKeyFileWritten
+  assertKeyFileWritten,
 } from 'common/asserts';
 import * as path from 'path';
 import {MockTestRunner} from 'vsts-task-lib/mock-test';
